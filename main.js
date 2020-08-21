@@ -8,15 +8,25 @@ class Block {
     this.data = data;
     this.previousHash = previousHash;
     this.hash = this.createHash();
+    this.nonce = 0;
   }
+
   createHash() {
-    return SHA(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)).toString();
+    return SHA(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString();
+  }
+
+  proofOfWork(difficulty) {
+    while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")) {
+      this.nonce++;
+      this.hash = this.createHash();
+    }
   }
 };
 
 class Blockchain {
   constructor() {
     this.blockchain = [this.createGenesisBlock()];
+    this.difficulty = 4;
   };
   createGenesisBlock() {
     return new Block(0, Date(), "Initialize", "0");
@@ -26,7 +36,8 @@ class Blockchain {
   };
   addBlock(newBlock) {
     newBlock.previousHash = this.getLatestBlock().hash;
-    newBlock.hash = newBlock.createHash();
+    // newBlock.hash = newBlock.createHash();
+    newBlock.proofOfWork(this.difficulty);
     this.blockchain.push(newBlock);
   };
   validate() {
@@ -51,5 +62,4 @@ let blockToAdd = new Block(1, "21-08-2020", { sender: "ExampleMan", receiver: "E
 let secondBlockToAdd = new Block(2, "21-08-2020", { sender: "ExampleWoman", receiver: "ExampleMan", quantity: 50 })
 makingCoins.addBlock(blockToAdd);
 makingCoins.addBlock(secondBlockToAdd);
-console.log(JSON.stringify(makingCoins))
 
